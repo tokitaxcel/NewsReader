@@ -1,0 +1,92 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+
+  def is_release_lane?
+    @is_release_lane ||= (lane_name == 'ios release')
+  end
+
+  def measure_sec
+    start_time = Time.now
+    yield
+    "#{(Time.now - start_time).to_i} sec"
+  end
+
+  def build_subdir
+    @build_subdir ||= 'beta'
+  end
+
+  def lane_name
+    @lane_name ||= 'beta'
+  end
+
+  lane :build do |options|
+    @build_duration = measure_sec do
+      build_ios_app(
+        project: 'NewsReader.xcodeproj',
+        scheme: 'NewsReader',
+        configuration: 'Release',
+        output_directory: "./build/#{build_subdir}",
+        output_name: 'PRX.ipa',
+        archive_path: "./build/#{build_subdir}/PRX.xcarchive",
+        export_method: is_release_lane? ? 'app-store' : 'ad-hoc',
+        export_options: {
+          compileBitcode: is_release_lane?,
+        },
+        include_bitcode: is_release_lane?,
+        include_symbols: is_release_lane?,
+        clean: options[:clean],
+        silent: true,
+      )
+    end
+  end
+
+  # (1) bataレーン
+  desc "Submit App to Fabric Beta"
+  lane :beta do
+
+    # (2) アプリをビルドし、ipaファイルを作成する
+    gym(
+      configuration: "Release",
+      scheme: "NewsReader",
+      export_method: "ad-hoc",
+      output_directory: "./build/ipa/" + Time.new.strftime("%Y/%m/%d/%H%M"),
+      output_name: "NewsReader.ipa",
+      include_bitcode: false,
+      export_options: {
+        compileBitcode: false,
+        uploadBitcode: false
+      }
+    )
+
+    # (3) Fabric Betaにアプリをアップロードする
+#    crashlytics(
+#      crashlytics_path: "./Pods/Crashlytics/submit",
+#      api_token: "<API Key>",
+#      build_secret: "<Build Secret>",
+#      notes: "Beta配信",
+#      groups: "all"
+#    )
+
+    # (4) 処理完了メッセージをSlackに投稿する
+#    slack(
+#      message: "NewsReaderをFabric Betaにデプロイしました。",
+#      slack_url: "https://hooks.slack.com/services/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"
+#    )
+  end
+end
