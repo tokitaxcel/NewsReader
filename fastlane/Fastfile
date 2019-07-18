@@ -60,6 +60,8 @@ platform :ios do
   desc "Submit App to Fabric Beta"
   lane :beta do
 
+    sigh(force: false, adhoc: true)
+
     # (2) アプリをビルドし、ipaファイルを作成する
     gym(
       configuration: "Release",
