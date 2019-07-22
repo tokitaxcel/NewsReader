@@ -44,7 +44,7 @@ platform :ios do
         output_directory: "./build/#{build_subdir}",
         output_name: 'PRX.ipa',
         archive_path: "./build/#{build_subdir}/PRX.xcarchive",
-        export_method: is_release_lane? ? 'app-store' : 'ad-hoc',
+        export_method: is_release_lane? ? 'app-store' : 'enterprise',
         export_options: {
           compileBitcode: is_release_lane?,
         },
@@ -66,7 +66,7 @@ platform :ios do
     gym(
       configuration: "Release",
       scheme: "NewsReader",
-      export_method: "ad-hoc",
+      export_method: "enterprise",
       output_directory: "./build/ipa/" + Time.new.strftime("%Y/%m/%d/%H%M"),
       output_name: "NewsReader.ipa",
       include_bitcode: false,
